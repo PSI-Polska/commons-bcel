@@ -22,6 +22,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.generic.ConstantPoolGen;
 
 /**
  * This class represents the constant pool, i.e., a table of constants, of a parsed classfile. It may contain null
@@ -230,8 +231,16 @@ public class ConstantPool implements Cloneable, Node {
      * @throws IOException if problem in writeShort or dump
      */
     public void dump(final DataOutputStream file) throws IOException {
-        file.writeShort(constantPool.length);
-        for (int i = 1; i < constantPool.length; i++) {
+        /*
+         * Constants over the size of the constant pool shall not be written out.
+         * This is a redundant measure as the ConstantPoolGen should have already
+         * reported an error back in the situation.
+         */
+        int size = constantPool.length < ConstantPoolGen.CONSTANT_POOL_SIZE - 1 ?
+                constantPool.length : ConstantPoolGen.CONSTANT_POOL_SIZE - 1;
+
+        file.writeShort(size);
+        for (int i = 1; i < size; i++) {
             if (constantPool[i] != null) {
                 constantPool[i].dump(file);
             }
